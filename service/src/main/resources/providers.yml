@@ -98,8 +98,8 @@ externalcreds:
                                     "https://terra.dsde-dev.broadinstitute.org/ecm-callback" ]
     era-commons:
       allowedRedirectUriPatterns: [ "https://bvdp-saturn-dev.appspot.com/ecm-callback",
-                                    "https://localhost.dsde-dev.broadinstitute.org/",
-                                    "https://localhost.dsde-dev.broadinstitute.org:3000/",
+                                    "https://local.dsde-dev.broadinstitute.org/",
+                                    "https://local.dsde-dev.broadinstitute.org:3000/",
                                     "https://duos-k8s.dsde-dev.broadinstitute.org/"]
     github:
       allowedRedirectUriPatterns: [ "https://[A-Za-z0-9-]*bvdp-saturn-dev.appspot.com/oauth_callback",
