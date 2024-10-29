@@ -16,9 +16,11 @@ import bio.terra.externalcreds.TestUtils;
 import bio.terra.externalcreds.auditLogging.AuditLogEvent;
 import bio.terra.externalcreds.auditLogging.AuditLogEventType;
 import bio.terra.externalcreds.auditLogging.AuditLogger;
+import bio.terra.externalcreds.generated.model.LinkInfo;
 import bio.terra.externalcreds.generated.model.Provider;
 import bio.terra.externalcreds.models.LinkedAccount;
 import bio.terra.externalcreds.models.LinkedAccountWithPassportAndVisas;
+import bio.terra.externalcreds.models.OAuth2State;
 import bio.terra.externalcreds.services.FenceProviderService;
 import bio.terra.externalcreds.services.LinkedAccountService;
 import bio.terra.externalcreds.services.PassportProviderService;
@@ -171,7 +173,7 @@ class OauthApiControllerTest extends BaseTest {
               eq(state),
               any(AuditLogEvent.Builder.class)))
           .thenReturn(inputLinkedAccount);
-      testCreatesLinkSuccessfully(inputLinkedAccount, state, oauthcode);
+      testCreatesLinkSuccessfully(inputLinkedAccount, state, oauthcode, false);
     }
 
     @Test
@@ -193,7 +195,7 @@ class OauthApiControllerTest extends BaseTest {
               any(AuditLogEvent.Builder.class)))
           .thenReturn(linkedAccountWithPassportAndVisas);
 
-      testCreatesLinkSuccessfully(inputLinkedAccount, state, oauthcode);
+      testCreatesLinkSuccessfully(inputLinkedAccount, state, oauthcode, false);
     }
 
     @Test
@@ -210,7 +212,34 @@ class OauthApiControllerTest extends BaseTest {
               eq(state),
               any(AuditLogEvent.Builder.class)))
           .thenReturn(inputLinkedAccount);
-      testCreatesLinkSuccessfully(inputLinkedAccount, state, oauthcode);
+      testCreatesLinkSuccessfully(inputLinkedAccount, state, oauthcode, false);
+    }
+
+    @Test
+    void testCreateLinkReturnsAdditionalState() throws Exception {
+      var inputLinkedAccount = TestUtils.createRandomLinkedAccount(Provider.GITHUB);
+      var oauthcode = UUID.randomUUID().toString();
+      var additionalStateParam = "{\"redirectTo\": \"http://foo.org\"}";
+      Object additionalState = mapper.convertValue(additionalStateParam, Object.class);
+      String redirectUri = "https://foo.bar.com";
+      OAuth2State oAuth2State =
+          new OAuth2State.Builder()
+              .provider(Provider.GITHUB)
+              .random(UUID.randomUUID().toString())
+              .redirectUri(redirectUri)
+              .additionalState(additionalState)
+              .build();
+      var state = oAuth2State.encode(mapper);
+      when(providerServiceMock.getAdditionalStateParams(state)).thenReturn(additionalState);
+
+      when(tokenProviderServiceMock.createLink(
+              eq(inputLinkedAccount.getProvider()),
+              eq(inputLinkedAccount.getUserId()),
+              eq(oauthcode),
+              eq(state),
+              any(AuditLogEvent.Builder.class)))
+          .thenReturn(inputLinkedAccount);
+      testCreatesLinkSuccessfully(inputLinkedAccount, state, oauthcode, true);
     }
 
     @Test
@@ -351,7 +380,7 @@ class OauthApiControllerTest extends BaseTest {
 
       mockSamUser(userId, accessToken);
 
-      when(providerServiceMock.getProviderAuthorizationUrl(userId, provider, redirectUri))
+      when(providerServiceMock.getProviderAuthorizationUrl(userId, provider, redirectUri, null))
           .thenReturn(result);
 
       var queryParams = new LinkedMultiValueMap<String, String>();
@@ -369,14 +398,15 @@ class OauthApiControllerTest extends BaseTest {
       var accessToken = "fakeAccessToken";
       var result = "https://test/authorization/uri";
       var redirectUri = "fakeuri";
+      var additionalState = "{\"redirectTo\", \"http://fake-url.org\"}";
 
       mockSamUser(userId, accessToken);
 
-      when(providerServiceMock.getProviderAuthorizationUrl(userId, provider, redirectUri))
+      when(providerServiceMock.getProviderAuthorizationUrl(
+              userId, provider, redirectUri, additionalState))
           .thenReturn(result);
 
       var queryParams = new LinkedMultiValueMap<String, String>();
-      var additionalState = "{\"redirectTo\", \"http://fake-url.org\"}";
       queryParams.add("redirectUri", redirectUri);
       queryParams.add("additionalState", additionalState);
       mvc.perform(
@@ -394,7 +424,7 @@ class OauthApiControllerTest extends BaseTest {
 
       mockSamUser(userId, accessToken);
 
-      when(providerServiceMock.getProviderAuthorizationUrl(userId, provider, redirectUri))
+      when(providerServiceMock.getProviderAuthorizationUrl(userId, provider, redirectUri, null))
           .thenThrow(new BadRequestException("Invalid redirectUri"));
 
       var queryParams = new LinkedMultiValueMap<String, String>();
@@ -446,20 +476,23 @@ class OauthApiControllerTest extends BaseTest {
   }
 
   private void testCreatesLinkSuccessfully(
-      LinkedAccount inputLinkedAccount, String state, String oauthcode) throws Exception {
+      LinkedAccount inputLinkedAccount, String state, String oauthcode, boolean decodeState)
+      throws Exception {
     var accessToken = "testToken";
     mockSamUser(inputLinkedAccount.getUserId(), accessToken);
+    LinkInfo linkInfo = OpenApiConverters.Output.convert(inputLinkedAccount);
+    if (decodeState) {
+      OAuth2State decodedState = OAuth2State.decode(mapper, state);
+      linkInfo.additionalState(decodedState.getAdditionalState().get());
+    }
+
     mvc.perform(
             post("/api/oauth/v1/{provider}/oauthcode", inputLinkedAccount.getProvider())
                 .header("authorization", "Bearer " + accessToken)
                 .param("state", state)
                 .param("oauthcode", oauthcode))
         .andExpect(status().isOk())
-        .andExpect(
-            content()
-                .json(
-                    mapper.writeValueAsString(
-                        OpenApiConverters.Output.convert(inputLinkedAccount))));
+        .andExpect(content().json(mapper.writeValueAsString(linkInfo)));
   }
 
   private void mockSamUser(String userId, String accessToken) {

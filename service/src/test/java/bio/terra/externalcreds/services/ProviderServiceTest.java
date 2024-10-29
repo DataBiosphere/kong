@@ -925,7 +925,7 @@ public class ProviderServiceTest extends BaseTest {
 
       var result =
           providerService.getProviderAuthorizationUrl(
-              linkedAccount.getUserId(), linkedAccount.getProvider(), redirectUri);
+              linkedAccount.getUserId(), linkedAccount.getProvider(), redirectUri, null);
       assertNotNull(result);
       // the result here should be only the state because of the mock above
       var savedState = bio.terra.externalcreds.models.OAuth2State.decode(objectMapper, result);
@@ -1150,7 +1150,7 @@ public class ProviderServiceTest extends BaseTest {
           .thenReturn("");
 
       return providerService.getProviderAuthorizationUrl(
-          linkedAccount.getUserId(), linkedAccount.getProvider(), redirectUri);
+          linkedAccount.getUserId(), linkedAccount.getProvider(), redirectUri, null);
     }
   }
 

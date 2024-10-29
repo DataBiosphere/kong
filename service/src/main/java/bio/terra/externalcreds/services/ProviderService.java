@@ -95,10 +95,6 @@ public class ProviderService {
         .collect(Collectors.toSet());
   }
 
-  public String getProviderAuthorizationUrl(String userId, Provider provider, String redirectUri) {
-    return getProviderAuthorizationUrl(userId, provider, redirectUri, null);
-  }
-
   public String getProviderAuthorizationUrl(
       String userId, Provider provider, String redirectUri, Object additionalState) {
     var providerClient = providerOAuthClientCache.getProviderClient(provider);
