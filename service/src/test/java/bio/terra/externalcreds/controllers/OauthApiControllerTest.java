@@ -364,6 +364,29 @@ class OauthApiControllerTest extends BaseTest {
     }
 
     @Test
+    void testGetAuthUrlWithAdditionalState() throws Exception {
+      var userId = "fakeUser";
+      var accessToken = "fakeAccessToken";
+      var result = "https://test/authorization/uri";
+      var redirectUri = "fakeuri";
+
+      mockSamUser(userId, accessToken);
+
+      when(providerServiceMock.getProviderAuthorizationUrl(userId, provider, redirectUri))
+          .thenReturn(result);
+
+      var queryParams = new LinkedMultiValueMap<String, String>();
+      var additionalState = "{\"redirectTo\", \"http://fake-url.org\"}";
+      queryParams.add("redirectUri", redirectUri);
+      queryParams.add("additionalState", additionalState);
+      mvc.perform(
+              get("/api/oauth/v1/{provider}/authorization-url", provider)
+                  .header("authorization", "Bearer " + accessToken)
+                  .queryParams(queryParams))
+          .andExpect(content().string(result));
+    }
+
+    @Test
     void testGetAuthUrlBadRequest() throws Exception {
       var userId = "fakeUser";
       var accessToken = "fakeAccessToken";
