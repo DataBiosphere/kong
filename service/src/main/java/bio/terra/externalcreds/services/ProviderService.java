@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -96,7 +97,7 @@ public class ProviderService {
   }
 
   public String getProviderAuthorizationUrl(
-      String userId, Provider provider, String redirectUri, Object additionalState) {
+      String userId, Provider provider, String redirectUri, Map<String, String> additionalState) {
     var providerClient = providerOAuthClientCache.getProviderClient(provider);
 
     var providerInfo = externalCredsConfig.getProviderProperties(provider);
@@ -146,7 +147,7 @@ public class ProviderService {
     }
   }
 
-  public Object getAdditionalStateParams(String state) {
+  public Optional<Map<String, String>> getAdditionalStateParams(String state) {
     OAuth2State decodedState = OAuth2State.decode(objectMapper, state);
     return decodedState.getAdditionalState();
   }

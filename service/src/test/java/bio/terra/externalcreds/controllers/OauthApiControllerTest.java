@@ -29,6 +29,8 @@ import bio.terra.externalcreds.services.TokenProviderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -38,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 
@@ -219,18 +222,19 @@ class OauthApiControllerTest extends BaseTest {
     void testCreateLinkReturnsAdditionalState() throws Exception {
       var inputLinkedAccount = TestUtils.createRandomLinkedAccount(Provider.GITHUB);
       var oauthcode = UUID.randomUUID().toString();
-      var additionalStateParam = "{\"redirectTo\": \"http://foo.org\"}";
-      Object additionalState = mapper.convertValue(additionalStateParam, Object.class);
+      Map<String, String> additionalStateParam = new HashMap<>();
+      additionalStateParam.put("redirectTo", "http://foo.org");
       String redirectUri = "https://foo.bar.com";
       OAuth2State oAuth2State =
           new OAuth2State.Builder()
               .provider(Provider.GITHUB)
               .random(UUID.randomUUID().toString())
               .redirectUri(redirectUri)
-              .additionalState(additionalState)
+              .additionalState(additionalStateParam)
               .build();
       var state = oAuth2State.encode(mapper);
-      when(providerServiceMock.getAdditionalStateParams(state)).thenReturn(additionalState);
+      when(providerServiceMock.getAdditionalStateParams(state))
+          .thenReturn(Optional.of(additionalStateParam));
 
       when(tokenProviderServiceMock.createLink(
               eq(inputLinkedAccount.getProvider()),
@@ -398,21 +402,23 @@ class OauthApiControllerTest extends BaseTest {
       var accessToken = "fakeAccessToken";
       var result = "https://test/authorization/uri";
       var redirectUri = "fakeuri";
-      var additionalState = "{\"redirectTo\", \"http://fake-url.org\"}";
+      Map<String, String> additionalStateParam = new HashMap<>();
+      additionalStateParam.put("redirectTo", "http://foo.org");
 
       mockSamUser(userId, accessToken);
 
       when(providerServiceMock.getProviderAuthorizationUrl(
-              userId, provider, redirectUri, additionalState))
+              userId, provider, redirectUri, additionalStateParam))
           .thenReturn(result);
 
       var queryParams = new LinkedMultiValueMap<String, String>();
       queryParams.add("redirectUri", redirectUri);
-      queryParams.add("additionalState", additionalState);
       mvc.perform(
-              get("/api/oauth/v1/{provider}/authorization-url", provider)
+              post("/api/oauth/v1/{provider}/authorization-url", provider)
                   .header("authorization", "Bearer " + accessToken)
-                  .queryParams(queryParams))
+                  .queryParams(queryParams)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(mapper.writeValueAsString(additionalStateParam)))
           .andExpect(content().string(result));
     }
 

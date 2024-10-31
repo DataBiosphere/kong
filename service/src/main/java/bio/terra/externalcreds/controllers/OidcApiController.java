@@ -48,13 +48,9 @@ public record OidcApiController(
   }
 
   @Override
-  public ResponseEntity<String> getAuthUrl(
-      Provider provider, String redirectUri, Object additionalState) {
+  public ResponseEntity<String> getAuthUrl(Provider provider, String redirectUri) {
     return ResponseEntity.ok(
-        jsonString(
-            oauthApiController
-                .getAuthorizationUrl(provider, redirectUri, additionalState)
-                .getBody()));
+        jsonString(oauthApiController.getAuthorizationUrl(provider, redirectUri).getBody()));
   }
 
   @Override

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Map;
 import java.util.Optional;
 import org.immutables.value.Value;
 
@@ -20,7 +21,7 @@ public interface OAuth2State extends WithOAuth2State {
 
   String getRedirectUri();
 
-  Optional<Object> getAdditionalState();
+  Optional<Map<String, String>> getAdditionalState();
 
   class Builder extends ImmutableOAuth2State.Builder {}
 

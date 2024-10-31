@@ -136,12 +136,30 @@ paths:
     parameters:
       - $ref: '#/components/parameters/providerParam'
       - $ref: '#/components/parameters/redirectUriParam'
-      - $ref: '#/components/parameters/additionalStateParam'
     get:
       summary: Builds an OAuth authorization URL that a user must use to initiate the OAuth dance.
       tags: [ oauth ]
       operationId: getAuthorizationUrl
       description: First step to link a new provider. Creates a 1 time use link. There can only be 1 active link per user per provider. The last link created will invalidate any prior links.
+      responses:
+        '200':
+          description: The authorization URL
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      summary: Builds an OAuth authorization URL that a user must use to initiate the OAuth dance and includes any additional params in the state.
+      tags: [ oauth ]
+      operationId: getAuthorizationUrlWithAdditionalParams
+      description: First step to link a new provider. Creates a 1 time use link. There can only be 1 active link per user per provider. The last link created will invalidate any prior links.
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/GetAuthUrlRequest'
       responses:
         '200':
           description: The authorization URL
@@ -247,7 +265,6 @@ paths:
     parameters:
       - $ref: '#/components/parameters/providerParam'
       - $ref: '#/components/parameters/redirectUriParam'
-      - $ref: '#/components/parameters/additionalStateParam'
     get:
       summary: Builds an OAuth authorization URL that a user must use to initiate the OAuth dance.
       tags: [ oidc ]
@@ -427,15 +444,6 @@ components:
       example: "http://localhost:9000/fence-callback"
       schema:
         type: string
-    additionalStateParam:
-      name: additionalState
-      description: Information to include in the oidc authorization state in the form of key/value pairs
-      in: query
-      required: false
-      content:
-        application/json:
-          schema:
-            type: object
     stateParam:
       name: state
       description: oidc authorization state, must be identical to state embedded in response from getAuthUrl
@@ -514,6 +522,10 @@ components:
             linkExpireTime:
               type: string
               format: date-time
+    GetAuthUrlRequest:
+      type: object
+      additionalProperties:
+        type: string
     PassportProvider:
       description: Enum containing valid passport providers.
       type: string
@@ -543,6 +555,8 @@ components:
           type: boolean
         additionalState:
           type: object
+          additionalProperties:
+            type: string
     ErrorReport:
       type: object
       required: [ message, statusCode ]
