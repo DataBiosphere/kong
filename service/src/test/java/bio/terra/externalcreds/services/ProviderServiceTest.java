@@ -974,7 +974,7 @@ public class ProviderServiceTest extends BaseTest {
       // the result here should be only the state because of the mock above
       var savedState = bio.terra.externalcreds.models.OAuth2State.decode(objectMapper, result);
       assertEquals(linkedAccount.getProvider(), savedState.getProvider());
-      //      assertEquals(Optional.of(additionalStateParam), savedState.getAdditionalState());
+      assertEquals(Optional.of(additionalStateParam), savedState.getAdditionalState());
 
       assertTrue(oAuth2StateDAO.deleteOidcStateIfExists(linkedAccount.getUserId(), savedState));
       // double check that the state gets removed just in case
