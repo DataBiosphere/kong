@@ -526,6 +526,8 @@ components:
       type: object
       additionalProperties:
         type: string
+      example: |
+        {"redirectTo": "https://my.redirect.url/"}
     PassportProvider:
       description: Enum containing valid passport providers.
       type: string
