@@ -28,11 +28,8 @@ import bio.terra.externalcreds.dataAccess.GA4GHVisaDAO;
 import bio.terra.externalcreds.dataAccess.LinkedAccountDAO;
 import bio.terra.externalcreds.dataAccess.OAuth2StateDAO;
 import bio.terra.externalcreds.generated.model.Provider;
-import bio.terra.externalcreds.models.CannotDecodeOAuth2State;
-import bio.terra.externalcreds.models.LinkedAccount;
-import bio.terra.externalcreds.models.LinkedAccountWithPassportAndVisas;
-import bio.terra.externalcreds.models.TokenTypeEnum;
-import bio.terra.externalcreds.models.VisaVerificationDetails;
+import bio.terra.externalcreds.models.*;
+import bio.terra.externalcreds.models.OAuth2State;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
@@ -43,6 +40,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -888,7 +886,7 @@ public class ProviderServiceTest extends BaseTest {
 
   @Nested
   @TestComponent
-  class OAuth2State {
+  class OAuth2StateTest {
     @MockBean OAuth2Service oAuth2ServiceMock;
     @MockBean ProviderOAuthClientCache providerOAuthClientCacheMock;
     @MockBean ExternalCredsConfig externalCredsConfigMock;
@@ -928,7 +926,7 @@ public class ProviderServiceTest extends BaseTest {
 
       var result =
           providerService.getProviderAuthorizationUrl(
-              linkedAccount.getUserId(), linkedAccount.getProvider(), redirectUri);
+              linkedAccount.getUserId(), linkedAccount.getProvider(), redirectUri, null);
       assertNotNull(result);
       // the result here should be only the state because of the mock above
       var savedState = bio.terra.externalcreds.models.OAuth2State.decode(objectMapper, result);
@@ -937,6 +935,66 @@ public class ProviderServiceTest extends BaseTest {
       assertTrue(oAuth2StateDAO.deleteOidcStateIfExists(linkedAccount.getUserId(), savedState));
       // double check that the state gets removed just in case
       assertFalse(oAuth2StateDAO.deleteOidcStateIfExists(linkedAccount.getUserId(), savedState));
+    }
+
+    @Test
+    void testOAuth2StateHasAdditionalStateParams() {
+      var linkedAccount = TestUtils.createRandomLinkedAccount();
+      var clientRegistration = createClientRegistration(linkedAccount.getProvider());
+      var providerProperties =
+          ProviderProperties.create()
+              .setAllowedRedirectUriPatterns(List.of(Pattern.compile(redirectUri)))
+              .setScopes(scopes);
+
+      when(externalCredsConfigMock.getProviderProperties(linkedAccount.getProvider()))
+          .thenReturn(providerProperties);
+      when(providerOAuthClientCacheMock.getProviderClient(linkedAccount.getProvider()))
+          .thenReturn(clientRegistration);
+
+      // this mock captures the `state` parameter and returns it
+      // we do this because the state is randomly generated and this test tests that what is
+      // sent to getAuthorizationRequestUri is saved in the database
+      when(oAuth2ServiceMock.getAuthorizationRequestUri(
+              eq(clientRegistration),
+              eq(redirectUri),
+              eq(scopes),
+              anyString(),
+              eq(providerProperties.getAdditionalAuthorizationParameters())))
+          .thenAnswer((Answer<String>) invocation -> (String) invocation.getArgument(3));
+
+      Map<String, String> additionalStateParam = new HashMap<>();
+      additionalStateParam.put("redirectTo", "http://foo.org");
+      var result =
+          providerService.getProviderAuthorizationUrl(
+              linkedAccount.getUserId(),
+              linkedAccount.getProvider(),
+              redirectUri,
+              additionalStateParam);
+      assertNotNull(result);
+      // the result here should be only the state because of the mock above
+      var savedState = bio.terra.externalcreds.models.OAuth2State.decode(objectMapper, result);
+      assertEquals(linkedAccount.getProvider(), savedState.getProvider());
+      assertEquals(Optional.of(additionalStateParam), savedState.getAdditionalState());
+
+      assertTrue(oAuth2StateDAO.deleteOidcStateIfExists(linkedAccount.getUserId(), savedState));
+      // double check that the state gets removed just in case
+      assertFalse(oAuth2StateDAO.deleteOidcStateIfExists(linkedAccount.getUserId(), savedState));
+    }
+
+    @Test
+    void testGetAdditionalStateParams() {
+      Map<String, String> additionalStateParam = new HashMap<>();
+      additionalStateParam.put("redirectTo", "http://foo.org");
+      OAuth2State oAuth2State =
+          new OAuth2State.Builder()
+              .provider(Provider.ERA_COMMONS)
+              .random(OAuth2State.generateRandomState(new SecureRandom()))
+              .redirectUri(redirectUri)
+              .additionalState(additionalStateParam)
+              .build();
+      String encoded = oAuth2State.encode(objectMapper);
+      Optional<Map<String, String>> decoded = providerService.getAdditionalStateParams(encoded);
+      assertEquals(Optional.of(additionalStateParam), decoded);
     }
 
     @Test
@@ -1096,7 +1154,7 @@ public class ProviderServiceTest extends BaseTest {
           .thenReturn("");
 
       return providerService.getProviderAuthorizationUrl(
-          linkedAccount.getUserId(), linkedAccount.getProvider(), redirectUri);
+          linkedAccount.getUserId(), linkedAccount.getProvider(), redirectUri, null);
     }
   }
 

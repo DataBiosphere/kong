@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
@@ -50,7 +52,20 @@ public record OauthApiController(
     var samUser = samUserFactory.from(request);
 
     var authorizationUrl =
-        providerService.getProviderAuthorizationUrl(samUser.getSubjectId(), provider, redirectUri);
+        providerService.getProviderAuthorizationUrl(
+            samUser.getSubjectId(), provider, redirectUri, null);
+
+    return ResponseEntity.ok(authorizationUrl);
+  }
+
+  @Override
+  public ResponseEntity<String> getAuthorizationUrlWithAdditionalParams(
+      String redirectUri, Provider provider, Map<String, String> body) {
+    var samUser = samUserFactory.from(request);
+
+    var authorizationUrl =
+        providerService.getProviderAuthorizationUrl(
+            samUser.getSubjectId(), provider, redirectUri, body);
 
     return ResponseEntity.ok(authorizationUrl);
   }
@@ -115,6 +130,10 @@ public record OauthApiController(
               }
             }
           };
+
+      Optional<Map<String, String>> additionalState =
+          providerService.getAdditionalStateParams(state);
+      additionalState.ifPresent(linkInfo::additionalState);
       return ResponseEntity.ok(linkInfo);
     } catch (Exception e) {
       auditLogger.logEvent(

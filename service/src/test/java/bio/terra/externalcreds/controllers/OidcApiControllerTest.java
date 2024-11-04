@@ -88,7 +88,7 @@ class OidcApiControllerTest extends BaseTest {
 
       mockSamUser(userId, accessToken);
 
-      when(providerServiceMock.getProviderAuthorizationUrl(userId, provider, redirectUri))
+      when(providerServiceMock.getProviderAuthorizationUrl(userId, provider, redirectUri, null))
           .thenReturn(result);
 
       var queryParams = new LinkedMultiValueMap<String, String>();
@@ -108,7 +108,7 @@ class OidcApiControllerTest extends BaseTest {
 
       mockSamUser(userId, accessToken);
 
-      when(providerServiceMock.getProviderAuthorizationUrl(userId, provider, redirectUri))
+      when(providerServiceMock.getProviderAuthorizationUrl(userId, provider, redirectUri, null))
           .thenThrow(new BadRequestException("Invalid redirectUri"));
 
       var queryParams = new LinkedMultiValueMap<String, String>();
