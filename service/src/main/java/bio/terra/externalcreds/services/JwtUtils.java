@@ -8,7 +8,6 @@ import bio.terra.externalcreds.models.LinkedAccount;
 import bio.terra.externalcreds.models.LinkedAccountWithPassportAndVisas;
 import bio.terra.externalcreds.models.PassportWithVisas;
 import bio.terra.externalcreds.models.TokenTypeEnum;
-import com.google.common.annotations.VisibleForTesting;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTParser;
 import java.net.URI;
@@ -130,8 +129,7 @@ public record JwtUtils(ExternalCredsConfig externalCredsConfig, JwtDecoderCache 
         : TokenTypeEnum.access_token;
   }
 
-  @VisibleForTesting
-  Jwt decodeAndValidateJwt(String jwtString) {
+  public Jwt decodeAndValidateJwt(String jwtString) {
     try {
       // first we need to get the issuer from the jwt, the issuer is needed to validate
       var jwt = JWTParser.parse(jwtString);

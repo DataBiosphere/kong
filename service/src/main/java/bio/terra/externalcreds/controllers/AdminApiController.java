@@ -7,6 +7,7 @@ import bio.terra.externalcreds.generated.model.AdminLinkInfo;
 import bio.terra.externalcreds.generated.model.Provider;
 import bio.terra.externalcreds.models.LinkedAccount;
 import bio.terra.externalcreds.services.LinkedAccountService;
+import bio.terra.externalcreds.services.PassportService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
@@ -19,6 +20,7 @@ public record AdminApiController(
     HttpServletRequest request,
     ObjectMapper mapper,
     LinkedAccountService linkedAccountService,
+    PassportService passportService,
     ExternalCredsSamUserFactory samUserFactory,
     ExternalCredsConfig externalCredsConfig)
     implements AdminApi {
@@ -65,6 +67,16 @@ public record AdminApiController(
     requireAdmin();
     var linkedAccount = linkedAccountService.getLinkedAccountForExternalId(provider, externalId);
     return ResponseEntity.of(linkedAccount.map(OpenApiConverters.Output::convertAdmin));
+  }
+
+  @Override
+  public ResponseEntity<List<Object>> getVisas(
+      Provider provider, String userId, String visaType, String issuer) {
+    requireAdmin();
+    return ResponseEntity.ok(
+        passportService.getVisaClaims(provider, userId, issuer, visaType).stream()
+            .map(mapper::valueToTree)
+            .toList());
   }
 
   private void requireAdmin() {

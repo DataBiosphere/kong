@@ -90,6 +90,47 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /api/admin/v1/{provider}/visas/{userId}:
+    get:
+      summary: Gets the visas a user has for a provider with the given type and issuer
+      tags: [ admin ]
+      operationId: getVisas
+      parameters:
+        - $ref: '#/components/parameters/providerParam'
+        - name: userId
+          in: path
+          description: The Sam User Id for a user
+          required: true
+          schema:
+            type: string
+        - name: visaType
+          in: query
+          description: The type of the requested visa
+          schema:
+            type: string
+          required: true
+        - name: issuer
+          in: query
+          description: The issuer of the requested visa
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Visas matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/PermissionDenied'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /api/oauth/v1/providers:
     get:
       summary: Lists the available OAuth providers.
