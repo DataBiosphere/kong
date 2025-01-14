@@ -20,7 +20,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Gradle cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
@@ -29,7 +29,7 @@ jobs:
           restore-keys: v1-${{ runner.os }}-gradle-${{ github.ref }}
 
       - name: Cache SonarCloud packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
@@ -62,7 +62,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Gradle cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
@@ -99,7 +99,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Gradle cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
@@ -147,7 +147,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Gradle cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
