@@ -147,7 +147,7 @@ public class PassportService {
   @ReadTransaction
   public List<Map<String, Object>> getVisaClaims(
       Provider provider, String userId, String issuer, String visaType) {
-    return visaDAO.listUnexpiredVisasForIssuer(provider, userId, issuer, visaType).stream()
+    return visaDAO.listUnexpiredVisas(provider, userId, issuer, visaType).stream()
         .map(GA4GHVisa::getJwt)
         .map(jwtUtils::decodeAndValidateJwt)
         .map(Jwt::getClaims)

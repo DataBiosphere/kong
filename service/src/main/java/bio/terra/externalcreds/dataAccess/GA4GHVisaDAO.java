@@ -73,7 +73,7 @@ public class GA4GHVisaDAO {
   }
 
   @WithSpan
-  public List<GA4GHVisa> listUnexpiredVisasForIssuer(
+  public List<GA4GHVisa> listUnexpiredVisas(
       Provider provider, String userId, String issuer, String visaType) {
     var namedParameters =
         new MapSqlParameterSource()

@@ -71,7 +71,7 @@ public record AdminApiController(
 
   @Override
   public ResponseEntity<List<Object>> getVisas(
-      Provider provider, String userId, String visaType, String issuer) {
+      Provider provider, String userId, String issuer, String visaType) {
     requireAdmin();
     return ResponseEntity.ok(
         passportService.getVisaClaims(provider, userId, issuer, visaType).stream()

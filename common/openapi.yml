@@ -103,15 +103,15 @@ paths:
           required: true
           schema:
             type: string
-        - name: visaType
-          in: query
-          description: The type of the requested visa
-          schema:
-            type: string
-          required: true
         - name: issuer
           in: query
           description: The issuer of the requested visa
+          schema:
+            type: string
+          required: true
+        - name: visaType
+          in: query
+          description: The type of the requested visa
           schema:
             type: string
           required: true

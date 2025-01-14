@@ -210,7 +210,7 @@ class GA4GHVisaDAOTest extends BaseTest {
   }
 
   @Nested
-  class ListUnexpiredVisasForIssuer {
+  class ListUnexpiredVisas {
     @Test
     void testHappyPath() {
       var randomVisa = TestUtils.createRandomVisa();
@@ -234,7 +234,7 @@ class GA4GHVisaDAOTest extends BaseTest {
       visaDAO.insertVisa(TestUtils.createRandomVisa().withPassportId(savedPassport.getId()));
 
       var visas =
-          visaDAO.listUnexpiredVisasForIssuer(
+          visaDAO.listUnexpiredVisas(
               savedLinkedAccount.getProvider(),
               savedLinkedAccount.getUserId(),
               savedVisa.getIssuer(),
@@ -255,7 +255,7 @@ class GA4GHVisaDAOTest extends BaseTest {
       assertEquals(
           0,
           visaDAO
-              .listUnexpiredVisasForIssuer(
+              .listUnexpiredVisas(
                   savedLinkedAccount.getProvider(),
                   savedLinkedAccount.getUserId(),
                   "different_issuer",
@@ -264,7 +264,7 @@ class GA4GHVisaDAOTest extends BaseTest {
       assertEquals(
           0,
           visaDAO
-              .listUnexpiredVisasForIssuer(
+              .listUnexpiredVisas(
                   savedLinkedAccount.getProvider(),
                   savedLinkedAccount.getUserId(),
                   savedVisa.getIssuer(),
@@ -286,7 +286,7 @@ class GA4GHVisaDAOTest extends BaseTest {
                   .withExpires(
                       new Timestamp(Instant.now().minus(Duration.ofDays(1)).toEpochMilli())));
       var visas =
-          visaDAO.listUnexpiredVisasForIssuer(
+          visaDAO.listUnexpiredVisas(
               savedLinkedAccount.getProvider(),
               savedLinkedAccount.getUserId(),
               savedVisa.getIssuer(),
