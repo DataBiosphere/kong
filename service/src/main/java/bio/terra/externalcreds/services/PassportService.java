@@ -10,6 +10,7 @@ import bio.terra.externalcreds.dataAccess.GA4GHVisaDAO;
 import bio.terra.externalcreds.dataAccess.LinkedAccountDAO;
 import bio.terra.externalcreds.generated.model.Provider;
 import bio.terra.externalcreds.models.GA4GHPassport;
+import bio.terra.externalcreds.models.GA4GHVisa;
 import bio.terra.externalcreds.models.LinkedAccount;
 import bio.terra.externalcreds.models.PassportWithVisas;
 import bio.terra.externalcreds.models.ValidatePassportResultInternal;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -140,6 +142,16 @@ public class PassportService {
       invalidResult.auditInfo(Map.of("internal_user_id", linkedAccount.getUserId()));
     }
     return invalidResult.build();
+  }
+
+  @ReadTransaction
+  public List<Map<String, Object>> getVisaClaims(
+      Provider provider, String userId, String issuer, String visaType) {
+    return visaDAO.listUnexpiredVisas(provider, userId, issuer, visaType).stream()
+        .map(GA4GHVisa::getJwt)
+        .map(jwtUtils::decodeAndValidateJwt)
+        .map(Jwt::getClaims)
+        .toList();
   }
 
   private boolean isPassportIssueTimeValid(GA4GHPassport passport) {

@@ -16,9 +16,11 @@ import bio.terra.externalcreds.config.ExternalCredsConfig;
 import bio.terra.externalcreds.generated.model.AdminLinkInfo;
 import bio.terra.externalcreds.generated.model.Provider;
 import bio.terra.externalcreds.services.LinkedAccountService;
+import bio.terra.externalcreds.services.PassportService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Nested;
@@ -37,6 +39,7 @@ class AdminApiControllerTest extends BaseTest {
   @Autowired private ExternalCredsConfig externalCredsConfig;
 
   @MockBean private LinkedAccountService linkedAccountService;
+  @MockBean private PassportService passportService;
   @MockBean private ExternalCredsSamUserFactory samUserFactoryMock;
 
   @Nested
@@ -219,6 +222,51 @@ class AdminApiControllerTest extends BaseTest {
 
       mvc.perform(
               get("/api/admin/v1/" + Provider.ERA_COMMONS + "/activeAccounts")
+                  .header("authorization", "Bearer " + accessToken))
+          .andExpect(status().isForbidden());
+    }
+  }
+
+  @Nested
+  class GetVisas {
+    @Test
+    void testGetVisasAdmin() throws Exception {
+      var accessToken = mockAdminSamUser();
+      var inputLinkedAccount = TestUtils.createRandomLinkedAccount(Provider.RAS);
+      var issuer = UUID.randomUUID().toString();
+      var visaType = UUID.randomUUID().toString();
+
+      List<Map<String, Object>> response = List.of(Map.of("issuer", issuer, "visaType", visaType));
+      when(passportService.getVisaClaims(
+              Provider.RAS, inputLinkedAccount.getExternalUserId(), issuer, visaType))
+          .thenReturn(response);
+
+      mvc.perform(
+              get("/api/admin/v1/"
+                      + Provider.RAS
+                      + "/visas/"
+                      + inputLinkedAccount.getExternalUserId())
+                  .queryParam("issuer", issuer)
+                  .queryParam("visaType", visaType)
+                  .header("authorization", "Bearer " + accessToken))
+          .andExpect(status().isOk())
+          .andExpect(content().json(mapper.writeValueAsString(response)));
+    }
+
+    @Test
+    void testGetVisasNonAdmin() throws Exception {
+      var accessToken = mockSamUser("userId");
+      var inputLinkedAccount = TestUtils.createRandomLinkedAccount(Provider.RAS);
+      var issuer = UUID.randomUUID().toString();
+      var visaType = UUID.randomUUID().toString();
+
+      mvc.perform(
+              get("/api/admin/v1/"
+                      + Provider.RAS
+                      + "/visas/"
+                      + inputLinkedAccount.getExternalUserId())
+                  .queryParam("issuer", issuer)
+                  .queryParam("visaType", visaType)
                   .header("authorization", "Bearer " + accessToken))
           .andExpect(status().isForbidden());
     }

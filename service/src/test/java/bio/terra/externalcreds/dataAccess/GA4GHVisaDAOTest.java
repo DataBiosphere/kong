@@ -208,4 +208,90 @@ class GA4GHVisaDAOTest extends BaseTest {
     assertEquals(1, visas.size());
     assertEquals(expectedLastValidated, visas.get(0).getLastValidated().get());
   }
+
+  @Nested
+  class ListUnexpiredVisas {
+    @Test
+    void testHappyPath() {
+      var randomVisa = TestUtils.createRandomVisa();
+
+      // insert some other user with a visa to make sure it doesn't get returned
+      var savedLinkedAccountOther =
+          linkedAccountDAO.upsertLinkedAccount(TestUtils.createRandomLinkedAccount());
+      var savedPassportOther =
+          passportDAO.insertPassport(
+              TestUtils.createRandomPassport()
+                  .withLinkedAccountId(savedLinkedAccountOther.getId()));
+      visaDAO.insertVisa(randomVisa.withPassportId(savedPassportOther.getId()));
+
+      var savedLinkedAccount =
+          linkedAccountDAO.upsertLinkedAccount(TestUtils.createRandomLinkedAccount());
+      var savedPassport =
+          passportDAO.insertPassport(
+              TestUtils.createRandomPassport().withLinkedAccountId(savedLinkedAccount.getId()));
+      var savedVisa = visaDAO.insertVisa(randomVisa.withPassportId(savedPassport.getId()));
+      // insert some other visa to make sure it doesn't get returned
+      visaDAO.insertVisa(TestUtils.createRandomVisa().withPassportId(savedPassport.getId()));
+
+      var visas =
+          visaDAO.listUnexpiredVisas(
+              savedLinkedAccount.getProvider(),
+              savedLinkedAccount.getUserId(),
+              savedVisa.getIssuer(),
+              savedVisa.getVisaType());
+      assertEquals(1, visas.size());
+      assertEquals(savedVisa, visas.get(0));
+    }
+
+    @Test
+    void testNoVisas() {
+      var savedLinkedAccount =
+          linkedAccountDAO.upsertLinkedAccount(TestUtils.createRandomLinkedAccount());
+      var savedPassport =
+          passportDAO.insertPassport(
+              TestUtils.createRandomPassport().withLinkedAccountId(savedLinkedAccount.getId()));
+      var savedVisa =
+          visaDAO.insertVisa(TestUtils.createRandomVisa().withPassportId(savedPassport.getId()));
+      assertEquals(
+          0,
+          visaDAO
+              .listUnexpiredVisas(
+                  savedLinkedAccount.getProvider(),
+                  savedLinkedAccount.getUserId(),
+                  "different_issuer",
+                  savedVisa.getVisaType())
+              .size());
+      assertEquals(
+          0,
+          visaDAO
+              .listUnexpiredVisas(
+                  savedLinkedAccount.getProvider(),
+                  savedLinkedAccount.getUserId(),
+                  savedVisa.getIssuer(),
+                  "different_type")
+              .size());
+    }
+
+    @Test
+    void testExpiredVisas() {
+      var savedLinkedAccount =
+          linkedAccountDAO.upsertLinkedAccount(TestUtils.createRandomLinkedAccount());
+      var savedPassport =
+          passportDAO.insertPassport(
+              TestUtils.createRandomPassport().withLinkedAccountId(savedLinkedAccount.getId()));
+      var savedVisa =
+          visaDAO.insertVisa(
+              TestUtils.createRandomVisa()
+                  .withPassportId(savedPassport.getId())
+                  .withExpires(
+                      new Timestamp(Instant.now().minus(Duration.ofDays(1)).toEpochMilli())));
+      var visas =
+          visaDAO.listUnexpiredVisas(
+              savedLinkedAccount.getProvider(),
+              savedLinkedAccount.getUserId(),
+              savedVisa.getIssuer(),
+              savedVisa.getVisaType());
+      assertEquals(0, visas.size());
+    }
+  }
 }
