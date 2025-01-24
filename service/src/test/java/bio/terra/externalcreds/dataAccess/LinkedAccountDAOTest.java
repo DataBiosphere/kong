@@ -12,6 +12,7 @@ import bio.terra.externalcreds.config.ExternalCredsConfig;
 import bio.terra.externalcreds.config.ProviderProperties;
 import bio.terra.externalcreds.generated.model.Provider;
 import bio.terra.externalcreds.models.GA4GHPassport;
+import bio.terra.externalcreds.models.LinkedAccount;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
@@ -245,8 +246,10 @@ class LinkedAccountDAOTest extends BaseTest {
 
       // Assert that only the expired linked account is returned
       assertEquals(
-          List.of(savedExpiredLinkedAccount),
-          linkedAccountDAO.getExpiredLinkedAccountsWithPassports());
+          List.of(savedExpiredLinkedAccount.getId()),
+          linkedAccountDAO.getExpiredLinkedAccountsWithPassports().stream()
+              .map(LinkedAccount::getId)
+              .toList());
     }
   }
 
