@@ -644,6 +644,42 @@ public class ProviderServiceTest extends BaseTest {
 
   @Nested
   @TestComponent
+  class InvalidateExpiredLinkedAccounts {
+    @Autowired private GA4GHPassportDAO passportDAO;
+    @Autowired private LinkedAccountDAO linkedAccountDAO;
+    @Autowired private PassportProviderService passportProviderService;
+
+    @Test
+    void testOnlyExpiredLinkedAccountsAreInvalidated() {
+      // insert two linked accounts, one with an expired, one not
+      var expiredLinkedAccount =
+          TestUtils.createRandomLinkedAccount().withExpires(new Timestamp(0));
+      var savedExpiredLinkedAccount = linkedAccountDAO.upsertLinkedAccount(expiredLinkedAccount);
+      var nonExpiredLinkedAccount = TestUtils.createRandomLinkedAccount();
+      var savedNonExpiredLinkedAccount =
+          linkedAccountDAO.upsertLinkedAccount(nonExpiredLinkedAccount);
+
+      passportDAO.insertPassport(
+          TestUtils.createRandomPassport().withLinkedAccountId(savedExpiredLinkedAccount.getId()));
+      passportDAO.insertPassport(
+          TestUtils.createRandomPassport()
+              .withLinkedAccountId(savedNonExpiredLinkedAccount.getId()));
+
+      passportProviderService.invalidateExpiredLinkedAccountsWithPassports();
+      assertTrue(
+          passportDAO
+              .getPassport(expiredLinkedAccount.getUserId(), expiredLinkedAccount.getProvider())
+              .isEmpty());
+      assertTrue(
+          passportDAO
+              .getPassport(
+                  nonExpiredLinkedAccount.getUserId(), nonExpiredLinkedAccount.getProvider())
+              .isPresent());
+    }
+  }
+
+  @Nested
+  @TestComponent
   class RefreshExpiringPassports {
     @Autowired private GA4GHPassportDAO passportDAO;
     @Autowired private LinkedAccountDAO linkedAccountDAO;

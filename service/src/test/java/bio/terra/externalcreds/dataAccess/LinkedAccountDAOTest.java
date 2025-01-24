@@ -12,6 +12,7 @@ import bio.terra.externalcreds.config.ExternalCredsConfig;
 import bio.terra.externalcreds.config.ProviderProperties;
 import bio.terra.externalcreds.generated.model.Provider;
 import bio.terra.externalcreds.models.GA4GHPassport;
+import bio.terra.externalcreds.models.LinkedAccount;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
@@ -145,7 +146,7 @@ class LinkedAccountDAOTest extends BaseTest {
   }
 
   @Nested
-  class GetExpiringLinkedAccounts {
+  class GetLinkedAccountsWithExpiringPassportsOrVisas {
 
     private final Timestamp testExpirationCutoff =
         new Timestamp(Instant.now().plus(Duration.ofMinutes(15)).toEpochMilli());
@@ -178,7 +179,7 @@ class LinkedAccountDAOTest extends BaseTest {
       // Assert that only the expiring linked account is returned
       assertEquals(
           List.of(savedExpiredLinkedAccount),
-          linkedAccountDAO.getExpiringLinkedAccounts(testExpirationCutoff));
+          linkedAccountDAO.getLinkedAccountsWithExpiringPassportsOrVisas(testExpirationCutoff));
     }
 
     @Test
@@ -192,7 +193,7 @@ class LinkedAccountDAOTest extends BaseTest {
       // Assert that the linked account is returned
       assertEquals(
           List.of(savedLinkedAccount),
-          linkedAccountDAO.getExpiringLinkedAccounts(testExpirationCutoff));
+          linkedAccountDAO.getLinkedAccountsWithExpiringPassportsOrVisas(testExpirationCutoff));
     }
 
     @Test
@@ -210,7 +211,45 @@ class LinkedAccountDAOTest extends BaseTest {
       // Assert that the linked account is returned
       assertEquals(
           List.of(savedLinkedAccount),
-          linkedAccountDAO.getExpiringLinkedAccounts(testExpirationCutoff));
+          linkedAccountDAO.getLinkedAccountsWithExpiringPassportsOrVisas(testExpirationCutoff));
+    }
+  }
+
+  @Nested
+  class GetExpiredLinkedAccountsWithPassports {
+    @Test
+    void testGetsOnlyExpiredLinkedAccounts() {
+      // Create a not expired linked account with a passport
+      var linkedAccount =
+          TestUtils.createRandomPassportLinkedAccount()
+              .withExpires(Timestamp.from(Instant.now().plus(Duration.ofMinutes(1))));
+      var passport = TestUtils.createRandomPassport();
+
+      var savedLinkedAccount = linkedAccountDAO.upsertLinkedAccount(linkedAccount);
+      passportDAO.insertPassport(passport.withLinkedAccountId(savedLinkedAccount.getId()));
+
+      // Create an expired linked account without a passport
+      var linkedAccountWithoutPassport =
+          TestUtils.createRandomLinkedAccount()
+              .withExpires(Timestamp.from(Instant.now().minus(Duration.ofMinutes(1))));
+      linkedAccountDAO.upsertLinkedAccount(linkedAccountWithoutPassport);
+
+      // Create an expired linked account with a passport
+      var expiredLinkedAccount =
+          TestUtils.createRandomPassportLinkedAccount()
+              .withExpires(Timestamp.from(Instant.now().minus(Duration.ofMinutes(1))));
+      var expiredPassport = TestUtils.createRandomPassport();
+
+      var savedExpiredLinkedAccount = linkedAccountDAO.upsertLinkedAccount(expiredLinkedAccount);
+      passportDAO.insertPassport(
+          expiredPassport.withLinkedAccountId(savedExpiredLinkedAccount.getId()));
+
+      // Assert that only the expired linked account is returned
+      assertEquals(
+          List.of(savedExpiredLinkedAccount.getId()),
+          linkedAccountDAO.getExpiredLinkedAccountsWithPassports().stream()
+              .map(LinkedAccount::getId)
+              .toList());
     }
   }
 

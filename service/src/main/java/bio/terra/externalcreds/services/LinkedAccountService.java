@@ -111,8 +111,14 @@ public class LinkedAccountService {
   }
 
   @ReadTransaction
-  public List<LinkedAccount> getExpiringLinkedAccounts(Timestamp expirationCutoff) {
-    return linkedAccountDAO.getExpiringLinkedAccounts(expirationCutoff);
+  public List<LinkedAccount> getExpiredLinkedAccountsWithPassports() {
+    return linkedAccountDAO.getExpiredLinkedAccountsWithPassports();
+  }
+
+  @ReadTransaction
+  public List<LinkedAccount> getLinkedAccountsWithExpiringPassportsOrVisas(
+      Timestamp expirationCutoff) {
+    return linkedAccountDAO.getLinkedAccountsWithExpiringPassportsOrVisas(expirationCutoff);
   }
 
   private LinkedAccountWithPassportAndVisas savePassportAndVisasIfPresent(

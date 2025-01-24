@@ -242,7 +242,7 @@ public class ProviderService {
     return linkedAccount;
   }
 
-  protected void invalidateLinkedAccount(LinkedAccount linkedAccount) {
+  protected void invalidateLinkedAccountAndRemovePassport(LinkedAccount linkedAccount) {
     auditLogger.logEvent(
         new AuditLogEvent.Builder()
             .auditLogEventType(AuditLogEventType.LinkExpired)

@@ -87,6 +87,20 @@ public class PassportProviderService extends ProviderService {
     }
   }
 
+  /**
+   * It is important to invalidate an expired link when it has a passport because downstream systems
+   * need to revoke authorizations that it grants. We don't need to actively do this when there are
+   * no passports, we just stop serving access token requests.
+   *
+   * @return the number of links invalidated
+   */
+  public int invalidateExpiredLinkedAccountsWithPassports() {
+    var expiredLinkedAccountsWithPassports =
+        linkedAccountService.getExpiredLinkedAccountsWithPassports();
+    expiredLinkedAccountsWithPassports.forEach(this::invalidateLinkedAccountAndRemovePassport);
+    return expiredLinkedAccountsWithPassports.size();
+  }
+
   private void logLinkCreation(
       Optional<LinkedAccountWithPassportAndVisas> linkedAccountWithPassportAndVisas,
       AuditLogEvent.Builder auditLogEventBuilder) {
@@ -142,7 +156,8 @@ public class PassportProviderService extends ProviderService {
   public int refreshExpiringPassports() {
     var refreshInterval = externalCredsConfig.getVisaAndPassportRefreshDuration();
     var expirationCutoff = new Timestamp(Instant.now().plus(refreshInterval).toEpochMilli());
-    var expiringLinkedAccounts = linkedAccountService.getExpiringLinkedAccounts(expirationCutoff);
+    var expiringLinkedAccounts =
+        linkedAccountService.getLinkedAccountsWithExpiringPassportsOrVisas(expirationCutoff);
 
     for (LinkedAccount linkedAccount : expiringLinkedAccounts) {
       try {
@@ -158,7 +173,7 @@ public class PassportProviderService extends ProviderService {
   @VisibleForTesting
   void authAndRefreshPassport(LinkedAccount linkedAccount) {
     if (linkedAccount.getExpires().toInstant().isBefore(Instant.now())) {
-      invalidateLinkedAccount(linkedAccount);
+      invalidateLinkedAccountAndRemovePassport(linkedAccount);
     } else {
       try {
         var linkedAccountWithRefreshedPassport = getRefreshedPassportsAndVisas(linkedAccount);
@@ -192,7 +207,7 @@ public class PassportProviderService extends ProviderService {
           if (linkedAccount.getId().isEmpty()) {
             throw new ExternalCredsException("linked account id missing");
           }
-          invalidateLinkedAccount(linkedAccount);
+          invalidateLinkedAccountAndRemovePassport(linkedAccount);
         } else {
           // log and try again later
           throw new ExternalCredsException("Failed to refresh passport: ", oauthEx);
