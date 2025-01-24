@@ -63,7 +63,8 @@ public class LinkedAccountDAO {
   }
 
   @WithSpan
-  public List<LinkedAccount> getExpiringLinkedAccounts(Timestamp expirationCutoff) {
+  public List<LinkedAccount> getLinkedAccountsWithExpiringPassportsOrVisas(
+      Timestamp expirationCutoff) {
     var namedParameters = new MapSqlParameterSource("expirationCutoff", expirationCutoff);
     var query =
         "SELECT DISTINCT la.* FROM linked_account la"
@@ -155,6 +156,18 @@ public class LinkedAccountDAO {
             + " WHERE la.expires > :expirationCutoff"
             + " AND la.provider = :provider::provider_enum"
             + " AND la.is_authenticated = true";
+    return jdbcTemplate.query(query, namedParameters, LINKED_ACCOUNT_ROW_MAPPER);
+  }
+
+  public List<LinkedAccount> getExpiredLinkedAccountsWithPassports() {
+    var namedParameters =
+        new MapSqlParameterSource()
+            .addValue("expirationCutoff", new Timestamp(System.currentTimeMillis()));
+    var query =
+        "SELECT la.id, la.user_id, la.provider, la.refresh_token, la.expires, la.external_user_id, la.is_authenticated"
+            + " FROM linked_account la"
+            + " WHERE la.expires < :expirationCutoff"
+            + " AND exists (SELECT 1 FROM ga4gh_passport p WHERE p.linked_account_id = la.id)";
     return jdbcTemplate.query(query, namedParameters, LINKED_ACCOUNT_ROW_MAPPER);
   }
 

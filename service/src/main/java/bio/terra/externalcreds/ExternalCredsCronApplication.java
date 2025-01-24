@@ -40,11 +40,18 @@ public class ExternalCredsCronApplication {
 
   @Scheduled(fixedRateString = "#{${externalcreds.background-job-interval-mins} * 60 * 1000}")
   public void checkForExpiringCredentials() {
+    log.info("beginning check for expired linked accounts with passports");
+    var expiredLinkedAccountCount =
+        passportProviderService.invalidateExpiredLinkedAccountsWithPassports();
+    log.info(
+        "completed check for expired linked accounts with passports",
+        Map.of("expired_linked_account_count", expiredLinkedAccountCount));
+
     // check and refresh expiring visas and passports
-    log.info("beginning checkForExpiringCredentials");
+    log.info("beginning check for expiring passports and visas");
     var expiringPassportCount = passportProviderService.refreshExpiringPassports();
     log.info(
-        "completed checkForExpiringCredentials",
+        "complete check for expiring passports and visas",
         Map.of("expiring_passport_count", expiringPassportCount));
 
     // check and validate visas not validated since job was last run
