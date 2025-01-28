@@ -28,7 +28,7 @@ externalcreds:
       clientId: "${DCF_FENCE_CLIENT_ID}"
       clientSecret: "${DCF_FENCE_CLIENT_SECRET}"
       linkLifespan: "15d"
-      scopes: [ "openid", "user", "google_credentials" ]
+      scopes: [ "openid", "user", "google_credentials", "data" ]
       externalIdClaim: "username"
       issuer: "${DCF_FENCE_BASE_URL:https://nci-crdc-staging.datacommons.io/user}"
       revokeEndpoint: "${externalcreds.providers.dcf-fence.issuer}/oauth2/revoke"
