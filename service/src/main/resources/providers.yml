@@ -87,6 +87,15 @@ externalcreds:
       userInfoEndpoint: "${externalcreds.providers.era-commons.issuer}/openid/connect/v1.1/userinfo"
 
 ---
+spring.config.activate.on-profile: 'qa'
+externalcreds:
+  providers:
+    github:
+      allowedRedirectUriPatterns: [ "https://terra.[A-Za-z0-9-]+.bee.envs-terra.bio/oauth_callback" ]
+      issuer: "https://oauth-proxy.dsp-eng-tools.broadinstitute.org"
+      tokenEndpoint: "${externalcreds.providers.github.issuer}/github/token"
+      authorizationEndpoint: "${externalcreds.providers.github.issuer}/github/authorize"
+---
 spring.config.activate.on-profile: 'dev'
 externalcreds:
   providers:

@@ -7,7 +7,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
+import com.google.api.gax.rpc.ApiException;
 import com.google.cloud.pubsub.v1.Publisher;
+import com.google.cloud.pubsub.v1.TopicAdminClient;
+import com.google.cloud.pubsub.v1.TopicAdminSettings;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
@@ -51,6 +54,17 @@ public class EventPublisher {
     authorizationChangeEventPublisher.ifPresent(
         publisher -> {
           try {
+            try (TopicAdminClient topicAdminClient =
+                TopicAdminClient.create(TopicAdminSettings.newBuilder().build())) {
+              try {
+                topicAdminClient.getTopic(publisher.getTopicName());
+              } catch (ApiException e) {
+                log.info("creating new topic: {}", publisher.getTopicName());
+                topicAdminClient.createTopic(publisher.getTopicName());
+              }
+            } catch (IOException e) {
+              throw new ExternalCredsException("exception building event publisher", e);
+            }
             var message =
                 PubsubMessage.newBuilder()
                     .setData(ByteString.copyFromUtf8(objectMapper.writeValueAsString(event)))
