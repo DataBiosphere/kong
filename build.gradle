@@ -11,7 +11,7 @@ plugins {
 	id 'com.google.cloud.tools.jib' version '3.4.3' apply false
 	// ^^ see https://github.com/GoogleContainerTools/jib/blob/master/docs/faq.md#i-am-seeing-method-not-found-or-class-not-found-errors-when-building
   	id 'org.sonarqube' version '5.1.0.4882' apply false
-	id 'io.freefair.lombok' version '6.4.1' apply false
+	id 'io.freefair.lombok' version '8.12' apply false
 	id 'org.hidetake.swagger.generator' version '2.19.2' apply false
 }
 
