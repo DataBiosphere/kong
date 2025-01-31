@@ -49,7 +49,7 @@ dependencies {
 		exclude group: 'com.nimbusds', module: 'nimbus-jose-jwt'
 	}
 	// https://mvnrepository.com/artifact/org.mockito/mockito-core
-	testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.4.0'
+	testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.15.2'
 
 	testImplementation("au.com.dius.pact.provider:junit5:4.3.19")
 	testImplementation('au.com.dius.pact.provider:junit5spring:4.3.19')
