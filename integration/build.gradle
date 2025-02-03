@@ -12,10 +12,10 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+	implementation 'org.junit.jupiter:junit-jupiter-api:5.11.4'
 
 	// Google Dependencies
-	implementation 'com.google.auth:google-auth-library-oauth2-http:1.5.3'
+	implementation 'com.google.auth:google-auth-library-oauth2-http:1.31.0'
 
 	// ECM client library
 	implementation project(':client-resttemplate')
