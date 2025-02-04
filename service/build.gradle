@@ -36,7 +36,7 @@ dependencies {
 	implementation 'com.google.cloud:spring-cloud-gcp-starter-logging:4.9.0'
 
 	annotationProcessor 'org.immutables:value:2.10.1'
-	implementation('bio.terra:terra-common-lib:0.1.9-SNAPSHOT') {
+	implementation('bio.terra:terra-common-lib:1.1.35-SNAPSHOT') {
 		exclude group: 'io.kubernetes', module: 'client-java'
 	}
 	// https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
@@ -55,16 +55,7 @@ dependencies {
 	testImplementation('au.com.dius.pact.provider:junit5spring:4.6.16')
 	testImplementation project(':client-resttemplate')
 
-	// OpenTelemetry
-	var openTelemetryVersion = '1.32.0'
-	implementation "io.opentelemetry:opentelemetry-api:${openTelemetryVersion}"
-	implementation "io.opentelemetry:opentelemetry-sdk:${openTelemetryVersion}"
-	implementation "io.opentelemetry:opentelemetry-sdk-metrics:${openTelemetryVersion}"
-	implementation "io.opentelemetry:opentelemetry-exporter-logging:${openTelemetryVersion}"
-	implementation "io.opentelemetry.semconv:opentelemetry-semconv:1.30.0-rc.1"
-	implementation "io.opentelemetry.instrumentation:opentelemetry-spring-webmvc-6.0:${openTelemetryVersion}-alpha"
-	implementation "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:${openTelemetryVersion}"
-	implementation "io.opentelemetry.instrumentation:opentelemetry-spring-boot:${openTelemetryVersion}-alpha"
+	implementation "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.12.0"
 	implementation "com.google.cloud.opentelemetry:exporter-trace:0.33.0"
 
 	// For Micrometer metrics gathering
