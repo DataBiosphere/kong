@@ -92,7 +92,7 @@ externalcreds:
   providers:
     github:
       allowedRedirectUriPatterns: [ "https://terra.[A-Za-z0-9-]+.bee.envs-terra.bio/oauth_callback" ]
-      issuer: "https://monkey-dev.dsp-eng-tools.broadinstitute.org/"
+      issuer: "https://monkey-dev.dsp-eng-tools.broadinstitute.org"
       tokenEndpoint: "${externalcreds.providers.github.issuer}/github/token"
       authorizationEndpoint: "${externalcreds.providers.github.issuer}/github/authorize"
 ---
