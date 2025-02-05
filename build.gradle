@@ -10,7 +10,7 @@ plugins {
 	// ^^ for some reason, can't use spotless in multiple subprojects without this ^^
 	id 'com.google.cloud.tools.jib' version '3.4.4' apply false
 	// ^^ see https://github.com/GoogleContainerTools/jib/blob/master/docs/faq.md#i-am-seeing-method-not-found-or-class-not-found-errors-when-building
-  	id 'org.sonarqube' version '5.1.0.4882' apply false
+  	id 'org.sonarqube' version '6.0.1.5171' apply false
 	id 'io.freefair.lombok' version '6.4.1' apply false
 	id 'org.hidetake.swagger.generator' version '2.19.2' apply false
 }
@@ -19,7 +19,7 @@ repositories { mavenCentral() }
 
 subprojects {
 	group = 'bio.terra'
-	version = '1.62.0-SNAPSHOT'
+	version = '1.64.0-SNAPSHOT'
 
 	apply plugin: 'idea'
 	apply plugin: 'java'
