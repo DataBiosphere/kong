@@ -30,7 +30,7 @@ dependencies {
 	implementation 'org.broadinstitute.dsde.workbench:sam-client_2.13:v0.0.208'
 
 	// google
-	implementation platform('com.google.cloud:libraries-bom:26.53.0')
+	implementation platform('com.google.cloud:libraries-bom:26.54.0')
 	implementation 'com.google.cloud:google-cloud-pubsub'
 	implementation 'com.google.cloud:google-cloud-datastore'
 	implementation 'com.google.cloud:spring-cloud-gcp-starter-logging:4.9.0'
