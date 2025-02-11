@@ -6,7 +6,7 @@ plugins {
 
 	id 'io.spring.dependency-management' version '1.1.7' apply false
 	id 'org.springframework.boot' version '3.4.2' apply false
-	id 'com.diffplug.spotless' version '6.3.0' apply false
+	id 'com.diffplug.spotless' version '7.0.2' apply false
 	// ^^ for some reason, can't use spotless in multiple subprojects without this ^^
 	id 'com.google.cloud.tools.jib' version '3.4.4' apply false
 	// ^^ see https://github.com/GoogleContainerTools/jib/blob/master/docs/faq.md#i-am-seeing-method-not-found-or-class-not-found-errors-when-building
