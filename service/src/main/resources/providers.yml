@@ -95,7 +95,10 @@ externalcreds:
                                     "http://localhost:3000/ecm-callback",
                                     "https://dev.ukbiobank.terra.bio/ecm-callback",
                                     "https://dev.terra.biodatacatalyst.nhlbi.nih.gov/ecm-callback",
-                                    "https://terra.dsde-dev.broadinstitute.org/ecm-callback" ]
+                                    "https://terra.dsde-dev.broadinstitute.org/ecm-callback",
+                                    "https://local.dsde-dev.broadinstitute.org",
+                                    "https://local.dsde-dev.broadinstitute.org:3000",
+                                    "https://duos-k8s.dsde-dev.broadinstitute.org"]
     era-commons:
       allowedRedirectUriPatterns: [ "https://bvdp-saturn-dev.appspot.com/ecm-callback",
                                     "https://local.dsde-dev.broadinstitute.org",
@@ -136,10 +139,11 @@ spring.config.activate.on-profile: 'staging'
 externalcreds:
   providers:
     ras:
-      allowedRedirectUriPatterns: [ "https://bvdp-saturn-staging.appspot.com/ecm-callback" ]
+      allowedRedirectUriPatterns: [ "https://bvdp-saturn-staging.appspot.com/ecm-callback",
+                                    "https://duos-k8s.dsde-staging.broadinstitute.org"]
     era-commons:
       allowedRedirectUriPatterns: [ "https://bvdp-saturn-staging.appspot.com/ecm-callback",
-                                    "https://duos-k8s.dsde-staging.broadinstitute.org/" ]
+                                    "https://duos-k8s.dsde-staging.broadinstitute.org" ]
     github:
       allowedRedirectUriPatterns: [ "https://bvdp-saturn-staging.appspot.com/oauth_callback" ]
     fence:
@@ -156,7 +160,10 @@ externalcreds:
   providers:
     ras:
       allowedRedirectUriPatterns: [ "https://[A-Za-z-]+.terra.bio/ecm-callback",
-                                    "https://terra.biodatacatalyst.nhlbi.nih.gov/ecm-callback" ]
+                                    "https://terra.biodatacatalyst.nhlbi.nih.gov/ecm-callback",
+                                    "https://duos-k8s.dsde-prod.broadinstitute.org",
+                                    "https://duos.broadinstitute.org",
+                                    "https://duos.org"]
     github:
       allowedRedirectUriPatterns: [ "https://[A-Za-z-]+.terra.bio/oauth_callback",
                                     "https://terra.biodatacatalyst.nhlbi.nih.gov/oauth_callback" ]
